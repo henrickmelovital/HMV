@@ -1,18 +1,19 @@
 ﻿using APICatalogo.Context;
 using APICatalogo.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace APICatalogo.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProdutosController : Controller
+    public class ProdutosController : ControllerBase
     {
         private readonly APICatalogoContext _context;
 
-        public ProdutosController(APICatalogoContext contexto)
+        public ProdutosController(APICatalogoContext context)
         {
-            _context = contexto;
+            _context = context;
         }
 
         /// <summary>
@@ -20,10 +21,10 @@ namespace APICatalogo.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public ActionResult<IEnumerable<Produto>> GetProdutos()
+        public ActionResult<IEnumerable<ProdutoModel>> GetProdutos()
         {
-            var produtos = _context.Produtos.Take(10).ToList();
-            if(produtos is null)
+            var produtos = _context.Produtos.AsNoTracking().ToList();
+            if (produtos is null)
             {
                 return NotFound("Produtos não encontrados... ");
             }
@@ -36,9 +37,9 @@ namespace APICatalogo.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id:int}", Name="ObterProduto")]
-        public ActionResult<Produto> Get(int id)
+        public ActionResult<ProdutoModel> Get(int id)
         {
-            var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+            var produto = _context.Produtos.AsNoTracking().FirstOrDefault(p => p.ProdutoId == id);
             if (produto is null)
             {
                 return NotFound("Produto não encontrado... ");
@@ -52,7 +53,7 @@ namespace APICatalogo.Controllers
         /// <param name="produto"></param>
         /// <returns></returns>
         [HttpPost]
-        public ActionResult Post(Produto produto)
+        public ActionResult Post(ProdutoModel produto)
         {
             if (produto is null)
             {
@@ -71,7 +72,7 @@ namespace APICatalogo.Controllers
         /// <param name="produto"></param>
         /// <returns></returns>
         [HttpPut("{id:int}")]
-        public ActionResult Put(int id, Produto produto)
+        public ActionResult Put(int id, ProdutoModel produto)
         {
             if (id != produto.ProdutoId)
             {
@@ -91,7 +92,7 @@ namespace APICatalogo.Controllers
         /// <param name="produto"></param>
         /// <returns></returns>
         [HttpPatch("{id:int}")]
-        public ActionResult Patch(int id, Produto produto)
+        public ActionResult Patch(int id, ProdutoModel produto)
         {
             if (id != produto.ProdutoId)
             {
