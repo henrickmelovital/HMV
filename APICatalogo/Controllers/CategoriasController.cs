@@ -20,15 +20,28 @@ namespace APICatalogo.Controllers
         /// 
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
+        [HttpGet("TodasCategorias")]
         public ActionResult<IEnumerable<CategoriaModel>> GetCategorias()
         {
-            var categoria = _context.Categorias.AsNoTracking().Take(10).ToList();
-            if (categoria is null)
+            try
             {
-                return NotFound("Categorias não encontrados... ");
+                var categoria = _context.Categorias.AsNoTracking().Take(10).ToList();
+                if (categoria is null)
+                {
+                    return NotFound("Categorias não encontrados... ");
+                }
+                return categoria;
             }
-            return categoria;
+            catch (InvalidOperationException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Ocorreu um problema ao processar a solicitação. Tente novamente mais tarde.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Erro inesperado. Por favor, tente novamente mais tarde.");
+            }
         }
 
         /// <summary>
@@ -39,12 +52,25 @@ namespace APICatalogo.Controllers
         [HttpGet("{id:int}", Name = "ObterCategoria")]
         public ActionResult<CategoriaModel> Get(int id)
         {
-            var categoria = _context.Categorias.AsNoTracking().FirstOrDefault(p => p.CategoriaId == id);
-            if (categoria is null)
+            try
             {
-                return NotFound("Categoria não encontrado... ");
+                var categoria = _context.Categorias.AsNoTracking().FirstOrDefault(p => p.CategoriaId == id);
+                if (categoria is null)
+                {
+                    return NotFound("Categoria não encontrado... ");
+                }
+                return categoria;
             }
-            return categoria;
+            catch (InvalidOperationException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Ocorreu um problema ao processar a solicitação. Tente novamente mais tarde.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Erro inesperado. Por favor, tente novamente mais tarde.");
+            }
         }
 
         /// <summary>
@@ -54,12 +80,25 @@ namespace APICatalogo.Controllers
         [HttpGet("Produtos")]
         public ActionResult<IEnumerable<CategoriaModel>> GetCategoriaProduto()
         {
-            var categoria = _context.Categorias.AsNoTracking().Include(x=> x.Produtos).Take(10).ToList();
-            if (categoria is null)
+            try
             {
-                return NotFound("Categoria não encontrados... ");
+                var categoria = _context.Categorias.AsNoTracking().Include(x => x.Produtos).Take(10).ToList();
+                if (categoria is null)
+                {
+                    return NotFound("Categoria não encontrados... ");
+                }
+                return categoria;
             }
-            return categoria;
+            catch (InvalidOperationException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Ocorreu um problema ao processar a solicitação. Tente novamente mais tarde.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Erro inesperado. Por favor, tente novamente mais tarde.");
+            }
         }
 
         /// <summary>
@@ -67,17 +106,30 @@ namespace APICatalogo.Controllers
         /// </summary>
         /// <param name="categoria"></param>
         /// <returns></returns>
-        [HttpPost]
+        [HttpPost("InserirCategorias")]
         public ActionResult Post(CategoriaModel categoria)
         {
-            if (categoria is null)
-                return BadRequest();
+            try
+            {
+                if (categoria is null)
+                    return BadRequest();
 
-            _context.Categorias.Add(categoria);
-            _context.SaveChanges();
+                _context.Categorias.Add(categoria);
+                _context.SaveChanges();
 
-            return new CreatedAtRouteResult("ObterCategoria",
-                new { id = categoria.CategoriaId }, categoria);
+                return new CreatedAtRouteResult("ObterCategoria",
+                    new { id = categoria.CategoriaId }, categoria);
+            }
+            catch (InvalidOperationException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Ocorreu um problema ao processar a solicitação. Tente novamente mais tarde.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Erro inesperado. Por favor, tente novamente mais tarde.");
+            }
         }
 
         /// <summary>
@@ -86,16 +138,29 @@ namespace APICatalogo.Controllers
         /// <param name="id"></param>
         /// <param name="categoria"></param>
         /// <returns></returns>
-        [HttpPut("{id:int}")]
+        [HttpPut("{id:int}", Name = "AtualizaCategoria")]
         public ActionResult Put(int id, CategoriaModel categoria)
         {
-            if (id != categoria.CategoriaId)
+            try
             {
-                return BadRequest();
+                if (id != categoria.CategoriaId)
+                {
+                    return BadRequest();
+                }
+                _context.Entry(categoria).State = EntityState.Modified;
+                _context.SaveChanges();
+                return Ok(categoria);
             }
-            _context.Entry(categoria).State = EntityState.Modified;
-            _context.SaveChanges();
-            return Ok(categoria);
+            catch (InvalidOperationException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Ocorreu um problema ao processar a solicitação. Tente novamente mais tarde.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Erro inesperado. Por favor, tente novamente mais tarde.");
+            }
         }
 
         /// <summary>
@@ -103,18 +168,32 @@ namespace APICatalogo.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id:int}", Name = "DeletaCategoria")]
         public ActionResult Delete(int id)
         {
-            var categoria = _context.Categorias.FirstOrDefault(p => p.CategoriaId == id);
-
-            if (categoria == null)
+            try
             {
-                return NotFound("Categoria não encontrada...");
+                var categoria = _context.Categorias.FirstOrDefault(p => p.CategoriaId == id);
+
+                if (categoria == null)
+                {
+                    return NotFound("Categoria não encontrada...");
+                }
+                _context.Categorias.Remove(categoria);
+                _context.SaveChanges();
+                return Ok(categoria);
             }
-            _context.Categorias.Remove(categoria);
-            _context.SaveChanges();
-            return Ok(categoria);
+            catch (InvalidOperationException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Ocorreu um problema ao processar a solicitação. Tente novamente mais tarde.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Erro inesperado. Por favor, tente novamente mais tarde.");
+            }
+
         }
     }
 }

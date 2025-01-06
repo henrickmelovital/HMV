@@ -23,12 +23,25 @@ namespace APICatalogo.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<ProdutoModel>> GetProdutos()
         {
-            var produtos = _context.Produtos.AsNoTracking().ToList();
-            if (produtos is null)
+            try
             {
-                return NotFound("Produtos não encontrados... ");
+                var produtos = _context.Produtos.AsNoTracking().ToList();
+                if (produtos is null)
+                {
+                    return NotFound("Produtos não encontrados... ");
+                }
+                return produtos;
             }
-            return produtos;
+            catch (InvalidOperationException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Ocorreu um problema ao processar a solicitação. Tente novamente mais tarde.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Erro inesperado. Por favor, tente novamente mais tarde.");
+            }
         }
 
         /// <summary>
@@ -39,12 +52,25 @@ namespace APICatalogo.Controllers
         [HttpGet("{id:int}", Name="ObterProduto")]
         public ActionResult<ProdutoModel> Get(int id)
         {
-            var produto = _context.Produtos.AsNoTracking().FirstOrDefault(p => p.ProdutoId == id);
-            if (produto is null)
+            try
             {
-                return NotFound("Produto não encontrado... ");
+                var produto = _context.Produtos.AsNoTracking().FirstOrDefault(p => p.ProdutoId == id);
+                if (produto is null)
+                {
+                    return NotFound("Produto não encontrado... ");
+                }
+                return produto;
             }
-            return produto;
+            catch (InvalidOperationException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Ocorreu um problema ao processar a solicitação. Tente novamente mais tarde.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Erro inesperado. Por favor, tente novamente mais tarde.");
+            }
         }
 
         /// <summary>
@@ -55,14 +81,29 @@ namespace APICatalogo.Controllers
         [HttpPost]
         public ActionResult Post(ProdutoModel produto)
         {
-            if (produto is null)
+            try
             {
-                return BadRequest();
-            }
-            _context.Produtos.Add(produto);
-            _context.SaveChanges();
+                if (produto is null)
+                {
+                    return BadRequest();
+                }
+                _context.Produtos.Add(produto);
+                _context.SaveChanges();
 
-            return new CreatedAtRouteResult("obterProduto", new { id = produto.ProdutoId }, produto);
+                return new CreatedAtRouteResult("obterProduto", new { id = produto.ProdutoId }, produto);
+
+            }
+            catch (InvalidOperationException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Ocorreu um problema ao processar a solicitação. Tente novamente mais tarde.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Erro inesperado. Por favor, tente novamente mais tarde.");
+            }
+
         }
 
         /// <summary>
@@ -74,15 +115,28 @@ namespace APICatalogo.Controllers
         [HttpPut("{id:int}")]
         public ActionResult Put(int id, ProdutoModel produto)
         {
-            if (id != produto.ProdutoId)
+            try
             {
-                return BadRequest();
+                if (id != produto.ProdutoId)
+                {
+                    return BadRequest();
+                }
+
+                _context.Entry(produto).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                _context.SaveChanges();
+
+                return Ok(produto);
             }
-
-            _context.Entry(produto).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-            _context.SaveChanges();
-
-            return Ok(produto);
+            catch (InvalidOperationException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Ocorreu um problema ao processar a solicitação. Tente novamente mais tarde.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Erro inesperado. Por favor, tente novamente mais tarde.");
+            }   
         }
 
         /// <summary>
@@ -94,21 +148,34 @@ namespace APICatalogo.Controllers
         [HttpPatch("{id:int}")]
         public ActionResult Patch(int id, ProdutoModel produto)
         {
-            if (id != produto.ProdutoId)
+            try
             {
-                return BadRequest();
-            }
+                if (id != produto.ProdutoId)
+                {
+                    return BadRequest();
+                }
 
-            var existingProduto = _context.Produtos.Find(id);
-            if (existingProduto == null)
+                var existingProduto = _context.Produtos.Find(id);
+                if (existingProduto == null)
+                {
+                    return NotFound();
+                }
+
+                _context.Entry(existingProduto).CurrentValues.SetValues(produto);
+                _context.SaveChanges();
+
+                return Ok(existingProduto);
+            }
+            catch (InvalidOperationException)
             {
-                return NotFound();
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Ocorreu um problema ao processar a solicitação. Tente novamente mais tarde.");
             }
-
-            _context.Entry(existingProduto).CurrentValues.SetValues(produto);
-            _context.SaveChanges();
-
-            return Ok(existingProduto);
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Erro inesperado. Por favor, tente novamente mais tarde.");
+            }
         }
 
         /// <summary>
@@ -119,17 +186,31 @@ namespace APICatalogo.Controllers
         [HttpDelete]
         public ActionResult Delete(int id)
         {
-            var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
-
-            if (produto is null)
+            try
             {
-                return NotFound("Produto não localizado...");
+                var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+
+                if (produto is null)
+                {
+                    return NotFound("Produto não localizado...");
+                }
+
+                _context.Produtos.Remove(produto);
+                _context.SaveChanges();
+
+                return Ok(produto);
+            }
+            catch (InvalidOperationException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Ocorreu um problema ao processar a solicitação. Tente novamente mais tarde.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Erro inesperado. Por favor, tente novamente mais tarde.");
             }
 
-            _context.Produtos.Remove(produto);
-            _context.SaveChanges();
-
-            return Ok(produto);
         }
     }
 }
